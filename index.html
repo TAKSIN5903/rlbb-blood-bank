@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLBB - Red Relation Blood Bank</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-droplet icon-red"></i>
+            <span>RLBB</span>
+            <small style="font-size: 0.8rem; font-weight: normal; color: #666; display: block;">Red Relation Blood Bank</small>
+        </div>
+        <div class="nav-links">
+            <button onclick="scrollToSection('search-section')" class="btn btn-outline"><i class="fa-solid fa-magnifying-glass"></i> ডোনার খুঁজুন</button>
+            <button onclick="scrollToSection('register-section')" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> ডোনার হন / প্রোফাইল</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>রক্ত দিন, জীবন বাঁচান</h1>
+        <p>RLBB - Red Relation Blood Bank এ আপনাকে স্বাগতম। আপনার এক ব্যাগ রক্ত ফুটাবে নতুন হাসির রেখা।</p>
+    </section>
+
+    <!-- App Container -->
+    <div class="container">
+
+        <!-- Search & Filter Section -->
+        <section id="search-section" class="card">
+            <h2><i class="fa-solid fa-filter icon-red"></i> রক্তদাতা খুঁজুন</h2>
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label>বিভাগ নির্বাচন করুন</label>
+                    <select id="search-division" onchange="onSearchDivisionChange()">
+                        <option value="">সকল বিভাগ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>জেলা নির্বাচন করুন</label>
+                    <select id="search-district" onchange="onSearchDistrictChange()" disabled>
+                        <option value="">সকল জেলা</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>উপজেলা নির্বাচন করুন</label>
+                    <select id="search-upazila" onchange="renderDonors()" disabled>
+                        <option value="">সকল উপজেলা</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ব্লাড গ্রুপ</label>
+                    <select id="search-blood-group" onchange="renderDonors()">
+                        <option value="">সকল ব্লাড গ্রুপ</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Donors List Section -->
+        <section class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2><i class="fa-solid fa-users icon-red"></i> নিবন্ধিত রক্তদাতাদের তালিকা</h2>
+                <span id="donor-count" style="background: #ffe6e6; color: #d9534f; padding: 4px 12px; border-radius: 12px; font-weight: bold;">০ জন</span>
+            </div>
+            
+            <div id="donor-list" class="donor-grid">
+                <!-- Donor cards injected via app.js -->
+            </div>
+        </section>
+
+        <!-- Registration & Edit Section -->
+        <section id="register-section" class="card">
+            <h2 id="form-title"><i class="fa-solid fa-user-plus icon-red"></i> রক্তদাতা নিবন্ধন করুন</h2>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">আপনার দেওয়া তথ্য রক্তপ্রার্থীদের খুঁজে পেতে সাহায্য করবে। নিবন্ধনের পর যেকোনো সময় আপডেট করতে পারবেন।</p>
+            
+            <form id="donor-form" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="edit-donor-id">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>নাম <span style="color:red">*</span></label>
+                        <input type="text" id="reg-name" required placeholder="আপনার পুরো নাম">
+                    </div>
+
+                    <div class="form-group">
+                        <label>বিভাগ <span style="color:red">*</span></label>
+                        <select id="reg-division" required onchange="onRegDivisionChange()">
+                            <option value="">বিভাগ সিলেক্ট করুন</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>জেলা <span style="color:red">*</span></label>
+                        <select id="reg-district" required onchange="onRegDistrictChange()" disabled>
+                            <option value="">জেলা সিলেক্ট করুন</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>উপজেলা <span style="color:red">*</span></label>
+                        <select id="reg-upazila" required disabled>
+                            <option value="">উপজেলা সিলেক্ট করুন</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ব্লাড গ্রুপ <span style="color:red">*</span></label>
+                        <select id="reg-blood" required>
+                            <option value="">ব্লাড গ্রুপ নির্বাচন করুন</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>মোবাইল নম্বর <span style="color:red">*</span></label>
+                        <input type="tel" id="reg-phone" required placeholder="017XXXXXXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <label>হোয়াটসঅ্যাপ নম্বর / ইউজারনেম</label>
+                        <input type="text" id="reg-whatsapp" placeholder="017XXXXXXXX বা Username">
+                    </div>
+
+                    <div class="form-group">
+                        <label>শেষ রক্তদানের তারিখ</label>
+                        <input type="date" id="reg-last-date">
+                    </div>
+
+                    <div class="form-group">
+                        <label>উচ্চতা (ফুট/ইঞ্চি)</label>
+                        <input type="text" id="reg-height" placeholder="যেমন: 5 ft 6 in">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ওজন (কেজি)</label>
+                        <input type="number" id="reg-weight" placeholder="যেমন: 65">
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" id="btn-submit" class="btn btn-primary" style="flex: 1;">নিবন্ধন জমা দিন</button>
+                    <button type="button" id="btn-cancel" onclick="resetForm()" class="btn btn-outline" style="display: none;">বাতিল করুন</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 RLBB - Red Relation Blood Bank | রক্তদান একটি মানবিক কাজ</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

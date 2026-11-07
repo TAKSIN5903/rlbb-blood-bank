@@ -1,0 +1,506 @@
+
+/* DFSL Supabase Connection */
+
+const DFSL_SUPABASE_URL = "https://upcwytyjhovjwvyrjbie.supabase.co";
+const DFSL_SUPABASE_KEY = "sb_publishable_atJVeMhl-DCiTjoZelgZNA_0N_NFiC_";
+
+const dfslDB = window.supabase.createClient(
+  DFSL_SUPABASE_URL,
+  DFSL_SUPABASE_KEY
+);
+console.log("DFSL Supabase client:", !!dfslDB);
+console.log("DFSL Supabase client initialized");
+
+"use strict";
+
+// ==========================================
+// DFSL — Donate for Save Life
+// Frontend demo only — no database connected
+// ==========================================
+
+const $ = (selector) => document.querySelector(selector);
+
+// Bangladesh location data (starter sample)
+// পরে সম্পূর্ণ division, district ও upazila যুক্ত করব।
+const locations = {
+  "Dhaka": {
+    "Dhaka": ["Dhamrai", "Dohar", "Keraniganj", "Nawabganj", "Savar"],
+    "Gazipur": ["Gazipur Sadar", "Kaliakair", "Kapasia", "Sreepur"],
+    "Tangail": ["Tangail Sadar", "Basail", "Bhuapur", "Mirzapur"]
+  },
+  "Chattogram": {
+    "Chattogram": ["Anwara", "Boalkhali", "Hathazari", "Rangunia", "Sitakunda"],
+    "Cox's Bazar": ["Cox's Bazar Sadar", "Chakaria", "Ramu", "Teknaf"],
+    "Cumilla": ["Cumilla Adarsha Sadar", "Burichang", "Chandina", "Daudkandi"]
+  },
+  "Sylhet": {
+    "Sylhet": ["Sylhet Sadar", "Beanibazar", "Golapganj", "Jaintiapur", "Kanaighat"],
+    "Sunamganj": ["Sunamganj Sadar", "Chhatak", "Jagannathpur", "Tahirpur"],
+    "Moulvibazar": ["Moulvibazar Sadar", "Kamalganj", "Kulaura", "Sreemangal"],
+    "Habiganj": ["Habiganj Sadar", "Bahubal", "Chunarughat", "Madhabpur"]
+  },
+  "Rajshahi": {
+    "Rajshahi": ["Rajshahi Sadar", "Bagha", "Godagari", "Paba"],
+    "Bogura": ["Bogura Sadar", "Dhupchanchia", "Shajahanpur", "Sherpur"]
+  },
+  "Khulna": {
+    "Khulna": ["Khulna Sadar", "Dumuria", "Dighalia", "Paikgachha"],
+    "Jashore": ["Jashore Sadar", "Abhaynagar", "Bagherpara", "Manirampur"]
+  },
+  "Barishal": {
+    "Barishal": ["Barishal Sadar", "Bakerganj", "Banaripara", "Mehendiganj"],
+    "Bhola": ["Bhola Sadar", "Borhanuddin", "Char Fasson", "Lalmohan"]
+  },
+  "Rangpur": {
+    "Rangpur": ["Rangpur Sadar", "Badarganj", "Gangachara", "Mithapukur"],
+    "Dinajpur": ["Dinajpur Sadar", "Birampur", "Birganj", "Parbatipur"]
+  },
+  "Mymensingh": {
+    "Mymensingh": ["Mymensingh Sadar", "Bhaluka", "Dhobaura", "Trishal"],
+    "Jamalpur": ["Jamalpur Sadar", "Dewanganj", "Islampur", "Sarishabari"]
+  }
+};
+
+// Fictional demonstration records.
+// These are NOT real donors or real contact details.
+const demoDonors = [
+  {
+    id: 1,
+    name: "Demo Donor One",
+    division: "Sylhet",
+    district: "Sunamganj",
+    upazila: "Chhatak",
+    bloodGroup: "O+",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  },
+  {
+    id: 2,
+    name: "Demo Donor Two",
+    division: "Sylhet",
+    district: "Sylhet",
+    upazila: "Sylhet Sadar",
+    bloodGroup: "B+",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  },
+  {
+    id: 3,
+    name: "Demo Donor Three",
+    division: "Dhaka",
+    district: "Dhaka",
+    upazila: "Savar",
+    bloodGroup: "A+",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  },
+  {
+    id: 4,
+    name: "Demo Donor Four",
+    division: "Chattogram",
+    district: "Cox's Bazar",
+    upazila: "Teknaf",
+    bloodGroup: "AB+",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  },
+  {
+    id: 5,
+    name: "Demo Donor Five",
+    division: "Rajshahi",
+    district: "Rajshahi",
+    upazila: "Paba",
+    bloodGroup: "O-",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  },
+  {
+    id: 6,
+    name: "Demo Donor Six",
+    division: "Khulna",
+    district: "Jashore",
+    upazila: "Jashore Sadar",
+    bloodGroup: "B-",
+    phone: "01XXXXXXXXX",
+    whatsapp: "",
+    lastDonation: "",
+    height: "",
+    weight: ""
+  }
+];
+
+const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+const searchState = {
+  donors: [...demoDonors]
+};
+
+// Safely create an HTML option.
+function createOption(value, label = value) {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  return option;
+}
+
+// Fill a select while preserving its first placeholder option.
+function fillSelect(select, values) {
+  if (!select) return;
+
+  select.replaceChildren(
+    createOption("", select.dataset.placeholder || "সব নির্বাচন করুন")
+  );
+
+  values.forEach((value) => {
+    select.appendChild(createOption(value));
+  });
+}
+
+// Initialize division selectors.
+function setupDivisions() {
+  const divisions = Object.keys(locations);
+
+  fillSelect($("#division"), divisions);
+  fillSelect($("#form-division"), divisions);
+}
+
+// Update district options when a division changes.
+function setupDistrictSelector(divisionSelector, districtSelector, upazilaSelector) {
+  const division = $(divisionSelector);
+  const district = $(districtSelector);
+  const upazila = $(upazilaSelector);
+
+  if (!division || !district) return;
+
+  division.addEventListener("change", () => {
+    const selectedDivision = division.value;
+    const districts = Object.keys(locations[selectedDivision] || {});
+
+    fillSelect(district, districts);
+
+    if (upazila) {
+      fillSelect(upazila, []);
+      upazila.disabled = true;
+    }
+
+    district.disabled = !selectedDivision;
+  });
+
+  district.addEventListener("change", () => {
+    const selectedDivision = division.value;
+    const selectedDistrict = district.value;
+    const upazilas =
+      locations[selectedDivision]?.[selectedDistrict] || [];
+
+    if (upazila) {
+      fillSelect(upazila, upazilas);
+      upazila.disabled = !selectedDistrict;
+    }
+  });
+
+  district.disabled = true;
+
+  if (upazila) {
+    upazila.disabled = true;
+  }
+}
+
+// Escape text before inserting user-controlled values into HTML.
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    };
+
+    return entities[character];
+  });
+}
+
+// Format a date for display.
+function formatDate(dateValue) {
+  if (!dateValue) return "তথ্য দেওয়া হয়নি";
+
+  const date = new Date(`${dateValue}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "তথ্য দেওয়া হয়নি";
+  }
+
+  return date.toLocaleDateString("bn-BD", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+// Build a donor card.
+function createDonorCard(donor) {
+  const card = document.createElement("article");
+  card.className = "donor-card";
+
+  const name = escapeHTML(donor.name);
+  const division = escapeHTML(donor.division);
+  const district = escapeHTML(donor.district);
+  const upazila = escapeHTML(donor.upazila);
+  const bloodGroup = escapeHTML(donor.bloodGroup);
+  const lastDonation = escapeHTML(formatDate(donor.lastDonation));
+
+  card.innerHTML = `
+    <div class="donor-card-top">
+      <div class="blood-badge">${bloodGroup}</div>
+      <span class="donor-status">Demo তথ্য</span>
+    </div>
+
+    <h3>${name}</h3>
+
+    <p class="donor-location">
+      ${upazila}, ${district}, ${division}
+    </p>
+
+    <div class="donor-details">
+      <p><strong>শেষ রক্তদান:</strong> ${lastDonation}</p>
+    </div>
+
+    <p class="demo-notice">
+      এটি পরীক্ষামূলক তথ্য। যোগাযোগের নম্বর দেখানো হচ্ছে না।
+    </p>
+  `;
+
+  return card;
+}
+
+// Read current filters and display matching donors.
+function renderDonors() {
+  const donorList = $("#donor-list");
+  if (!donorList) return;
+
+  const division = $("#division")?.value || "";
+  const district = $("#district")?.value || "";
+  const upazila = $("#upazila")?.value || "";
+  const bloodGroup = $("#bloodGroup")?.value || "";
+  const keyword = ($("#keyword")?.value || "").trim().toLowerCase();
+
+  const filteredDonors = searchState.donors.filter((donor) => {
+    const matchesDivision = !division || donor.division === division;
+    const matchesDistrict = !district || donor.district === district;
+    const matchesUpazila = !upazila || donor.upazila === upazila;
+    const matchesBlood = !bloodGroup || donor.bloodGroup === bloodGroup;
+
+    const searchableText = [
+      donor.name,
+      donor.division,
+      donor.district,
+      donor.upazila,
+      donor.bloodGroup
+    ].join(" ").toLowerCase();
+
+    const matchesKeyword = !keyword || searchableText.includes(keyword);
+
+    return (
+      matchesDivision &&
+      matchesDistrict &&
+      matchesUpazila &&
+      matchesBlood &&
+      matchesKeyword
+    );
+  });
+
+  donorList.replaceChildren();
+
+  filteredDonors.forEach((donor) => {
+    donorList.appendChild(createDonorCard(donor));
+  });
+
+  const resultCount = $("#result-count");
+  if (resultCount) {
+    resultCount.textContent = `${filteredDonors.length} জন ডোনার পাওয়া গেছে`;
+  }
+
+  const emptyState = $("#empty-state");
+  if (emptyState) {
+    emptyState.hidden = filteredDonors.length !== 0;
+  }
+}
+
+// Reset all search filters.
+function clearFilters() {
+  ["#division", "#district", "#upazila", "#bloodGroup"].forEach((selector) => {
+    const element = $(selector);
+    if (element) element.value = "";
+  });
+
+  const keyword = $("#keyword");
+  if (keyword) keyword.value = "";
+
+  // Reset dependent location selectors.
+  if ($("#district")) {
+    fillSelect($("#district"), []);
+    $("#district").disabled = true;
+  }
+
+  if ($("#upazila")) {
+    fillSelect($("#upazila"), []);
+    $("#upazila").disabled = true;
+  }
+
+  renderDonors();
+}
+
+// Validate a Bangladeshi mobile number.
+function isValidBangladeshPhone(phone) {
+  const cleaned = String(phone || "").replace(/[\s-]/g, "");
+  return /^(?:\+8801|8801|01)[3-9]\d{8}$/.test(cleaned);
+}
+
+// Show a message below the registration form.
+function showFormMessage(message, success = false) {
+  const messageBox = $("#form-message");
+  if (!messageBox) {
+    window.alert(message);
+    return;
+  }
+
+  messageBox.textContent = message;
+  messageBox.setAttribute("role", "status");
+  messageBox.classList.toggle("success", success);
+  messageBox.classList.toggle("error", !success);
+}
+
+// Handle demo registration. This does NOT save anything.
+function setupRegistrationForm() {
+  const form = $("#registration-form");
+  if (!form) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+
+    const name = String(formData.get("full_name") || "").trim();
+    const division = String(formData.get("division") || "").trim();
+    const district = String(formData.get("district") || "").trim();
+    const upazila = String(formData.get("upazila") || "").trim();
+    const bloodGroup = String(formData.get("blood_group") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+    const whatsapp = String(formData.get("whatsapp") || "").trim();
+    const consent = form.querySelector('[name="consent"]');
+
+    if (!name || !division || !district || !upazila || !bloodGroup || !phone) {
+      showFormMessage("অনুগ্রহ করে প্রয়োজনীয় ঘরগুলো পূরণ করো।");
+      return;
+    }
+
+    if (!isValidBangladeshPhone(phone)) {
+      showFormMessage(
+        "সঠিক বাংলাদেশি মোবাইল নম্বর দাও। উদাহরণ: 01XXXXXXXXX"
+      );
+      return;
+    }
+
+    if (whatsapp && !isValidBangladeshPhone(whatsapp)) {
+      showFormMessage(
+        "WhatsApp নম্বর দিলে সঠিক বাংলাদেশি নম্বর দিতে হবে।"
+      );
+      return;
+    }
+
+    if (consent && !consent.checked) {
+      showFormMessage(
+        "তোমার তথ্য ব্যবহারের সম্মতি দিতে হবে।"
+      );
+      return;
+    }
+
+    // Important: no personal information is saved or published here.
+    showFormMessage(
+      "ফর্মের তথ্য যাচাই হয়েছে! এটি এখনো demo mode—তোমার তথ্য সংরক্ষিত হয়নি বা ওয়েবসাইটে প্রকাশিত হয়নি। Database যুক্ত করার পর প্রকৃত registration চালু হবে।",
+      true
+    );
+
+    form.reset();
+
+    // Reset dependent form location selectors after reset.
+    const formDistrict = $("#form-district");
+    const formUpazila = $("#form-upazila");
+
+    if (formDistrict) {
+      fillSelect(formDistrict, []);
+      formDistrict.disabled = true;
+    }
+
+    if (formUpazila) {
+      fillSelect(formUpazila, []);
+      formUpazila.disabled = true;
+    }
+  });
+}
+
+// Set the current year in the footer.
+function setupFooterYear() {
+  const year = $("#current-year");
+  if (year) year.textContent = new Date().getFullYear();
+}
+
+// Initialize the page.
+function initDFSL() {
+  setupDivisions();
+
+  setupDistrictSelector("#division", "#district", "#upazila");
+  setupDistrictSelector(
+    "#form-division",
+    "#form-district",
+    "#form-upazila"
+  );
+
+  ["#division", "#district", "#upazila", "#bloodGroup"].forEach((selector) => {
+    $(selector)?.addEventListener("change", renderDonors);
+  });
+
+  $("#keyword")?.addEventListener("input", renderDonors);
+  $("#clear-filters")?.addEventListener("click", clearFilters);
+
+  setupRegistrationForm();
+  setupFooterYear();
+  renderDonors();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDFSL);
+} else {
+  initDFSL();
+}
+
+async function testDFSLDatabaseConnection() {
+  const { error } = await dfslDB
+    .from("donors")
+    .select("id")
+    .limit(1);
+
+  if (error) {
+    console.error("DFSL database test:", error.message);
+    return;
+  }
+
+  console.log("DFSL database connection successful");
+}
+
+testDFSLDatabaseConnection();
