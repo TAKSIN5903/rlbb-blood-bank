@@ -6,6 +6,10 @@
     <title>RLBB - Red Relation Blood Bank</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK (v9 Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -13,8 +17,10 @@
     <header class="navbar">
         <div class="logo">
             <i class="fa-solid fa-droplet icon-red"></i>
-            <span>RLBB</span>
-            <small style="font-size: 0.8rem; font-weight: normal; color: #666; display: block;">Red Relation Blood Bank</small>
+            <div>
+                <span>RLBB</span>
+                <small style="font-size: 0.75rem; font-weight: normal; color: #666; display: block;">Red Relation Blood Bank</small>
+            </div>
         </div>
         <div class="nav-links">
             <button onclick="scrollToSection('search-section')" class="btn btn-outline"><i class="fa-solid fa-magnifying-glass"></i> ডোনার খুঁজুন</button>
@@ -78,14 +84,17 @@
             </div>
             
             <div id="donor-list" class="donor-grid">
-                <!-- Donor cards injected via app.js -->
+                <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 30px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 10px;">ডোনারদের তালিকা লোড হচ্ছে...</p>
+                </div>
             </div>
         </section>
 
         <!-- Registration & Edit Section -->
         <section id="register-section" class="card">
             <h2 id="form-title"><i class="fa-solid fa-user-plus icon-red"></i> রক্তদাতা নিবন্ধন করুন</h2>
-            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">আপনার দেওয়া তথ্য রক্তপ্রার্থীদের খুঁজে পেতে সাহায্য করবে। নিবন্ধনের পর যেকোনো সময় আপডেট করতে পারবেন।</p>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">আপনার দেওয়া তথ্য রক্তপ্রার্থীদের খুঁজে পেতে সাহায্য করবে। আপনার ৪-ডিজিটের সিক্রেট পিন দিয়ে যেকোনো সময় আপডেট বা এডিট করতে পারবেন।</p>
             
             <form id="donor-form" onsubmit="handleFormSubmit(event)">
                 <input type="hidden" id="edit-donor-id">
@@ -155,6 +164,11 @@
                     <div class="form-group">
                         <label>ওজন (কেজি)</label>
                         <input type="number" id="reg-weight" placeholder="যেমন: 65">
+                    </div>
+
+                    <div class="form-group">
+                        <label>৪ ডিজিটের পিন নম্বর (নিরাপত্তার জন্য) <span style="color:red">*</span></label>
+                        <input type="password" id="reg-pin" maxlength="4" pattern="\d{4}" required placeholder="যেমন: 1234">
                     </div>
                 </div>
 
